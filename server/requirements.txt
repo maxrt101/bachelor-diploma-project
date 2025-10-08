@@ -1,0 +1,14 @@
+fastapi~=0.111.0
+sqlalchemy~=2.0.30
+pydantic~=2.7.1
+numpy~=1.26.4
+ncnn~=1.0.20240410
+torch~=2.2.2
+requests~=2.32.1
+ultralytics~=8.2.18
+picamera2~=0.3.18
+opencv-python~=4.9.0.80
+pillow~=10.3.0
+pytesseract~=0.3.10
+setuptools~=68.2.0
+uvicorn~=0.29.0

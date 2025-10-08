@@ -1,0 +1,17 @@
+{
+  "server": {
+    "ip": "192.168.0.101",
+    "port": "8000",
+    "fetch_delay": 5
+  },
+  "device": {
+    "id": 1
+  },
+  "model": {
+    "path": "model/weights/best_ncnn_model",
+    "conf": 0.3,
+    "imagesize": 416,
+    "img_scale_method": "crop",
+    "img_scale_method2": "resize"
+  }
+}

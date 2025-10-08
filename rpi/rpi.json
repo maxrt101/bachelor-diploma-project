@@ -1,0 +1,11 @@
+{
+  "user": "maxrt",
+  "password": "maxrt",
+  "ip": "192.168.0.101",
+  "project": {
+    "work_dir": "/home/maxrt/dev/rpi_smart_meter/",
+    "files": ["main.py", "picam.py", "detect.py", "app.py", "log.py", "device.json", "model"],
+    "main": "main.py",
+    "venv": "%/../.venv"
+  }
+}

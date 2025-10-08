@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<!--data-bs-theme="dark"-->
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Smart Gas Meter - Home</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        a {
+          text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        {% if not prod %}
+            window.onload = () => {
+                let rgbText, nodes, hues;
+
+                const rgbTexts = document.querySelectorAll(".rgb-text");
+
+                rgbTexts.forEach(rgbText => {
+                    rgbText.innerHTML = [].slice
+                        .call(rgbText.innerHTML)
+                        .map(c => `<span>${c}</span>`)
+                        .join("");
+                });
+
+                nodes = document.querySelectorAll(".rgb-text span");
+                hues = [];
+
+                nodes.forEach((c, i) => {
+                    hues.push(Math.round(i * (360 / nodes.length)));
+                });
+
+                (function loop() {
+                    hues.forEach((h, i, _this) => {
+                        _this[i]--;
+                        nodes[i].style.color = `hsl(${_this[i]},100%,50%)`;
+                    });
+                    window.requestAnimationFrame(loop);
+                })();
+            };
+        {% endif %}
+    </script>
+    <div class="d-flex justify-content-center vh-100">
+        <div class="bg-secondary d-flex flex-column w-50 text-center m-4 p-4 shadow-lg mb-5 bg-body-tertiary rounded">
+            <h1 class="rgb-text mb-4">{% if prod %} Smart Gas Meter {% else %} 🏳️‍🌈🏳️‍🌈🏳️‍🌈 Smart Gay Meter 🏳️‍🌈🏳️‍🌈🏳️‍🌈 {% endif %}</h1>
+            <div class="d-flex justify-content-center flex-wrap">
+                {% for device in devices %}
+                <div class="w-100 mb-2">
+                    <a href="/ui/device/{{ device.id }}" class="btn w-50 {% if device.is_online() %} btn-outline-success {% else %} btn-outline-warning {% endif %}">
+                        Device: <b>{{ device.name }}</b> Status: <b>{% if device.is_online() %} Online {% else %} Offline {% endif %}</b>
+                    </a>
+                </div>
+                {% endfor %}
+                <div class="w-100 mb2">
+                    <a href="/ui/add_device" class="btn btn-outline-primary w-50">
+                        Add Device
+                    </a>
+                </div>
+            </div>
+            {% if not prod %}
+                <button class="rgb-text btn btn-light shadow-lg mt-auto" onclick="if (confirm('Здєлать заєбісь?')) {alert('заєбісь 👍')} else {alert('не заєбісь 👎')}">Здєлать заєбісь</button>
+            {% endif %}
+        </div>
+    </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
+</html>

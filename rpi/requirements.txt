@@ -1,0 +1,9 @@
+pytesseract~=0.3.10
+numpy~=1.26.4
+picamera2~=0.3.18
+opencv-python~=4.9.0.80
+ultralytics~=8.2.18
+ncnn~=1.0.20240410
+torch~=2.2.2
+pillow~=10.3.0
+setuptools~=68.2.0

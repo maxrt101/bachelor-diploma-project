@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Smart Gas Meter - Device {{ device.id }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <style>
+        a {
+          text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="d-flex justify-content-center vh-100">
+        <div class="bg-secondary d-flex flex-column w-75 text-center m-4 p-4 shadow-lg mb-5 bg-body-tertiary rounded ">
+            <h1 class="rgb-text mb-4">{% if prod %} Smart Gas Meter {% else %} 🏳️‍🌈🏳️‍🌈🏳️‍🌈 Smart Gay Meter 🏳️‍🌈🏳️‍🌈🏳️‍🌈 {% endif %}</h1>
+            <div class="d-flex justify-content-center container-fluid flex-wrap row h-100 d-flex">
+                <div class="col-3 bg-light shadow-lg rounded m-2 p-2 overflow-auto" style="height: 800px">
+                    <div class="rounded mb-2 border border-primary text-start ps-3 pt-1 d-flex">
+                        <h5>Device: {{ device.name }} <br> Status: {% if device.is_online() %} Online {% else %} Offline {% endif %}</h5>
+                    </div>
+                    <div class="rounded mb-2 border border-primary text-start ps-3 pt-1 w-100" id="status" style="display: none !important">
+                        <div class="alert alert-danger" role="alert" id="status-alert">
+                            Error Status
+                        </div>
+                    </div>
+                    <div>
+                        {% for reading in readings %}
+                        <div class="w-100 mb-1 bg-light rounded text-start ps-2 border rounded">
+                            <p> Value: {{ reading.reading }} <br> Time: {{ reading.time }} </p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div>
+                        <label for="fetch_timeout" class="form-label">Fetch timeout (sec)</label>
+                        <input type="range" class="form-range" min="1" max="460"  id="fetch_timeout">
+                    </div>
+                    <div>
+                        <button class="btn btn-outline-primary w-100 mb-1" onclick="update_settings()">Update Settings</button>
+                    </div>
+                    <div>
+                        <button class="btn btn-outline-primary w-100 mb-1" onclick="request_reading()">Request Reading</button>
+                    </div>
+                    <div>
+                        <button class="btn btn-outline-danger w-100" onclick="del_device()">Delete</button>
+                    </div>
+                </div>
+                <div class="col-8 bg-light shadow-lg rounded m-2 p-2" style="height: 800px">
+                    <h4>Chart</h4>
+                    <canvas id="chart" class="h-50"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function request_reading() {
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.open("GET", "/api/client/request_reading?id=" + {{ device.id }}, false);
+            xmlHttp.send(null);
+            let err = false;
+            if (xmlHttp.status == 200) {
+                let response = JSON.parse(xmlHttp.responseText);
+                if (response.status == "ok") {
+                    err = false;
+                } else {
+                    err = true;
+                }
+            } else {
+                err = true;
+            }
+
+            if (err) {
+                document.getElementById('status').style.display = 'block';
+                document.getElementById('status').textContent = "Failed To Request Reading";
+            } else {
+                alert("Reading Requested, wait a minute")
+            }
+        }
+
+        function del_device() {
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.open("GET", "/api/client/del_device?id=" + {{ device.id }}, false);
+            xmlHttp.send(null);
+            let err = false;
+            if (xmlHttp.status == 200) {
+                let response = JSON.parse(xmlHttp.responseText);
+                if (response.status == "ok") {
+                    err = false;
+                } else {
+                    err = true;
+                }
+            } else {
+                err = true;
+            }
+
+            if (err) {
+                document.getElementById('status').style.display = 'block';
+                document.getElementById('status').textContent = "Failed To Remove Device";
+            } else {
+                alert("Device removed successfully")
+            }
+        }
+
+        function update_settings() {
+            var xmlHttp = new XMLHttpRequest();
+            var value = document.getElementById('fetch_timeout').value;
+            xmlHttp.open("GET", "/api/client/set_fetch_timeout?id=" + {{ device.id }} + "&value=" + value, false);
+            xmlHttp.send(null);
+            let err = false;
+            if (xmlHttp.status == 200) {
+                let response = JSON.parse(xmlHttp.responseText);
+                if (response.status == "ok") {
+                    err = false;
+                } else {
+                    err = true;
+                }
+            } else {
+                err = true;
+            }
+
+            if (err) {
+                document.getElementById('status').style.display = 'block';
+                document.getElementById('status').textContent = "Failed To Update Settings";
+            } else {
+                alert("Settings updated successfully")
+            }
+        }
+
+        $(document).ready(function() {
+            document.getElementById('fetch_timeout').value = {{ device.fetch_timeout_sec }};
+        })
+
+        // {scales: {y:{beginAtZero: true}}}
+        var ctx = document.getElementById('chart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [{%for r in readings%}"{{r.time}}",{%endfor%}],
+                    datasets: [{
+                        label: "Test",
+                        data: [{%for r in readings%}{{r.reading}},{%endfor%}],
+                        borderwidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            grid: {
+                                display:false,
+                            },
+                            ticks: {
+                                autoSkip: false,
+                                maxRotation: 90,
+                                minRotation: 90
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false,
+                            }
+                        }
+                    }
+                }
+            });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
+</html>
